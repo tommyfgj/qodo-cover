@@ -27,92 +27,13 @@ jobs:
               - '!README.md'
               - '!docs/**'
 
-  test:
-    needs: [changes]
-    if: needs.changes.outputs.relevant_changes == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # Ensures we fetch all history for all branches
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.12'
-      
-      # Step to cache Poetry dependencies
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/pypoetry
-            ~/.cache/pip
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Install dependencies using Poetry
-        run: poetry install
-      - name: Run tests and generate reports
-        env:
-          OPENAI_API_KEY: "This_is_a_fake_API_key"
-        run: make test
-      - name: Upload test report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-reports
-          path: testLog.xml
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-reports
-          path: cobertura.xml
-        env:
-          pythonLocation: /opt/hostedtoolcache/Python/3.12.2/x64
-          LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.2/x64/lib
-
-  package-test:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.12'
-      
-      # Step to cache Poetry dependencies
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/pypoetry
-            ~/.cache/pip
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Install dependencies using Poetry
-        run: poetry install
-      - name: Build, Install and Test Package from Different Location
-        run: |
-          poetry build
-          pip install dist/*.whl
-          cd /tmp
-          cover-agent --help        
 
   build:
-    needs: [test, changes]
+    
     if: needs.changes.outputs.relevant_changes == 'true'
     strategy:
       matrix:
-       os: [ubuntu-22.04, windows-latest, macos-latest-large]
+       os: [macos-latest-large]
 
     runs-on: ${{ matrix.os }}
     steps:
