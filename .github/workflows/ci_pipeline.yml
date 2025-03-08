@@ -29,8 +29,6 @@ jobs:
 
 
   build:
-    
-    if: needs.changes.outputs.relevant_changes == 'true'
     strategy:
       matrix:
        os: [macos-latest-large]
